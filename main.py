@@ -4,7 +4,7 @@ from PyQt5.QtCore import *
 from PyQt5.QtPrintSupport import *
 import os
 import sys
-from ai_tools import CreateLLMSession
+from ai_tools import CreateLLMSession, translate
 from ai_tools.config import MISTRAL_API_KEY
 
 model_config = {
@@ -239,6 +239,8 @@ class MainWindow(QMainWindow):
         files_up_panel_layout.addWidget(self.btn_tasks)
         files_up_panel_layout.addWidget(self.btn_list)
         
+        self.btn_translator.pressed.connect(self.translate)
+
         # files_down_layout
         self.btn_mic = QPushButton('', self)
         self.btn_photo = QPushButton('', self)
@@ -351,9 +353,21 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(container)
 
     def summarise(self):
+        selected_text = self.editor.textCursor().selectedText()
+
+        summary = self.llm_session.summarize(selected_text) # Should be async!
+        
         text = self.editor.toPlainText()
-        summary = self.llm_session.summarize(self.editor.textCursor().selectedText())
-        text = text.replace(self.editor.textCursor().selectedText(), summary)
+        text = text.replace(selected_text, summary)
+        self.editor.setPlainText(text)
+    
+    def translate(self):
+        selected_text = self.editor.textCursor().selectedText()
+
+        translated = translate("en", "ru", selected_text) # Should be async!
+
+        text = self.editor.toPlainText()
+        text = text.replace(selected_text, translated)
         self.editor.setPlainText(text)
 
 
