@@ -111,9 +111,21 @@ class MainWindow(QMainWindow):
         self.update_title()
 
         self.editor.setContextMenuPolicy(Qt.ActionsContextMenu)
+        context_copy_ation = QAction("Copy", self)
+        context_copy_ation.triggered.connect(self.editor.copy)
+        self.editor.addAction(context_copy_ation)
+
+        context_paste_ation = QAction("Paste", self)
+        context_paste_ation.triggered.connect(self.editor.paste)
+        self.editor.addAction(context_paste_ation)
+
         context_summarise_ation = QAction("Summarise", self)
         context_summarise_ation.triggered.connect(self.summarise)
         self.editor.addAction(context_summarise_ation)
+
+        context_translate_ation = QAction("Translate", self)
+        context_translate_ation.triggered.connect(self.translate)
+        self.editor.addAction(context_translate_ation)
 
         # LEFT PANEL
         self.icons_path = 'assets/Icons/'
