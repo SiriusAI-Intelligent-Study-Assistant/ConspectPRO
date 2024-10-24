@@ -4,6 +4,14 @@ from PyQt5.QtCore import *
 from PyQt5.QtPrintSupport import *
 import os
 import sys
+from ai_tools import CreateLLMSession
+from ai_tools.config import MISTRAL_API_KEY
+
+model_config = {
+    "API_KEY": MISTRAL_API_KEY,
+    "model_name": "mistral",
+}
+
 
 class MainWindow(QMainWindow):
     def __init__(self, *args, **kwargs):
@@ -173,6 +181,8 @@ class MainWindow(QMainWindow):
 
         self.show()
 
+        self.llm_session = CreateLLMSession(model_config)
+
 
     def generate_file_manager(self):
         # File manager
@@ -341,7 +351,10 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(container)
 
     def summarise(self):
-        print(self.editor.textCursor().selectedText())
+        text = self.editor.toPlainText()
+        summary = self.llm_session.summarize(self.editor.textCursor().selectedText())
+        text = text.replace(self.editor.textCursor().selectedText(), summary)
+        self.editor.setPlainText(text)
 
 
 # drivers code
