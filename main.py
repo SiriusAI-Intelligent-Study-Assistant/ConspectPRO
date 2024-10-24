@@ -10,22 +10,17 @@ class MainWindow(QMainWindow):
         super(MainWindow, self).__init__(*args, **kwargs)
         self.setGeometry(100, 100, 600, 400)
 
-        layout = QFormLayout()
         self.setStyleSheet("background-color: #262627;")
         
         self.editor = QPlainTextEdit()
         self.editor.setStyleSheet("background-color: #1e1e1f; color: #FFFFFF") 
-         
 
         fixedfont = QFontDatabase.systemFont(QFontDatabase.FixedFont)
         fixedfont.setPointSize(12)
         self.editor.setFont(fixedfont)
 
-
         self.path = None
-
-        
-
+        self.is_file_manager_opened = False
 
         # FILE MENU
         file_menu = self.menuBar().addMenu("&File")
@@ -108,11 +103,12 @@ class MainWindow(QMainWindow):
         self.update_title()
 
         self.editor.setContextMenuPolicy(Qt.ActionsContextMenu)
-        quitAction = QAction("Summarise", self)
-        quitAction.triggered.connect(self.summarise)
-        self.editor.addAction(quitAction)
+        context_summarise_ation = QAction("Summarise", self)
+        context_summarise_ation.triggered.connect(self.summarise)
+        self.editor.addAction(context_summarise_ation)
 
-        icons_path = 'assets/Icons/'
+        # LEFT PANEL
+        self.icons_path = 'assets/Icons/'
         
         self.btn_file_manager = QPushButton('', self)
         self.btn_search = QPushButton('', self)
@@ -120,42 +116,161 @@ class MainWindow(QMainWindow):
         self.btn_calendar = QPushButton('', self)
         self.btn_inf = QPushButton('', self)
         self.btn_settings = QPushButton('', self)
-        self.btn_file_manager.setStyleSheet("color: #FFFFFF; border: none")
-        self.btn_search.setStyleSheet("color: #FFFFFF; border: none")
-        self.btn_time.setStyleSheet("color: #FFFFFF; border: none")
-        self.btn_calendar.setStyleSheet("color: #FFFFFF; border: none")
-        self.btn_inf.setStyleSheet("color: #FFFFFF; border: none")
-        self.btn_settings.setStyleSheet("color: #FFFFFF; border: none")
         
-        self.btn_file_manager.setIcon(QIcon(icons_path  + 'Info.png'))
-        self.btn_search.setIcon(QIcon(icons_path  + 'Search.png'))
-        self.btn_time.setIcon(QIcon(icons_path  + 'Clock.png'))
-        self.btn_calendar.setIcon(QIcon(icons_path  + 'Calendar.png'))
-        self.btn_inf.setIcon(QIcon(icons_path  + 'Info.png'))
-        self.btn_settings.setIcon(QIcon(icons_path  + 'Settings.png'))
+        self.buttons_css = "color: #FFFFFF; border: none"
+        self.btn_file_manager.setStyleSheet(self.buttons_css)
+        self.btn_search.setStyleSheet(self.buttons_css)
+        self.btn_time.setStyleSheet(self.buttons_css)
+        self.btn_calendar.setStyleSheet(self.buttons_css)
+        self.btn_inf.setStyleSheet(self.buttons_css)
+        self.btn_settings.setStyleSheet(self.buttons_css)
+
+        self.btn_file_manager.setIcon(QIcon(self.icons_path  + 'Circle_arrow.png'))
+        self.btn_search.setIcon(QIcon(self.icons_path  + 'Search.png'))
+        self.btn_time.setIcon(QIcon(self.icons_path  + 'Clock.png'))
+        self.btn_calendar.setIcon(QIcon(self.icons_path  + 'Calendar.png'))
+        self.btn_inf.setIcon(QIcon(self.icons_path  + 'Info.png'))
+        self.btn_settings.setIcon(QIcon(self.icons_path  + 'Settings.png'))
+
+        self.btn_file_manager.setIconSize(QSize(80, 80))
+        self.btn_search.setIconSize(QSize(80, 80))
+        self.btn_time.setIconSize(QSize(80, 80))
+        self.btn_calendar.setIconSize(QSize(80, 80))
+        self.btn_inf.setIconSize(QSize(80, 80))
+        self.btn_settings.setIconSize(QSize(80, 80))
+
+        self.btn_file_manager.setFixedSize(QSize(40, 40))
+        self.btn_search.setFixedSize(QSize(40, 40))
+        self.btn_time.setFixedSize(QSize(40, 40))
+        self.btn_calendar.setFixedSize(QSize(40, 40))
+        self.btn_inf.setFixedSize(QSize(40, 40))
+        self.btn_settings.setFixedSize(QSize(40, 40))
+
+        self.btn_file_manager.pressed.connect(self.open_file_manager)
 
         left_layout = QVBoxLayout()
+        left_layout.setSpacing(30)
         left_layout.addWidget(self.btn_file_manager)
         left_layout.addWidget(self.btn_search)
         left_layout.addWidget(self.btn_time)
         left_layout.addWidget(self.btn_calendar)
+        left_layout.addStretch(50)
         left_layout.addWidget(self.btn_inf)
         left_layout.addWidget(self.btn_settings)
-        left_layout.addStretch(5)
-        left_layout.setSpacing(20)
         left_widget = QWidget()
         left_widget.setLayout(left_layout)
-
+        self.left_widget = left_widget
 
         # showing all the components
+        self.main_layout = QHBoxLayout()
 
-        layout.addRow(left_widget, self.editor) 
+        self.main_layout.addWidget(left_widget)
+        self.main_layout.addWidget(self.editor)
 
         container = QWidget()
-        container.setLayout(layout)
+        container.setLayout(self.main_layout)
         self.setCentralWidget(container)
+
         self.show()
 
+
+    def generate_file_manager(self):
+        # File manager
+        file_manager = QWidget()
+        files_layout = QVBoxLayout()
+
+        files_up_panel_layout = QHBoxLayout()
+        files_manager_layout = QVBoxLayout()
+        files_down_layout = QHBoxLayout()
+
+        files_up_panel_layout.setContentsMargins(0, 0, 0, 0)
+        files_down_layout.setContentsMargins(0, 0, 0, 0)
+
+        # files_up_panel
+        self.btn_translator = QPushButton('', self)
+        self.btn_chat = QPushButton('', self)
+        self.btn_book = QPushButton('', self)
+        self.btn_statistic = QPushButton('', self)
+        self.btn_tasks = QPushButton('', self)
+        self.btn_list = QPushButton('', self)
+        
+        self.btn_translator.setStyleSheet(self.buttons_css)
+        self.btn_chat.setStyleSheet(self.buttons_css)
+        self.btn_book.setStyleSheet(self.buttons_css)
+        self.btn_statistic.setStyleSheet(self.buttons_css)
+        self.btn_tasks.setStyleSheet(self.buttons_css)
+        self.btn_list.setStyleSheet(self.buttons_css)
+
+        self.btn_translator.setIcon(QIcon(self.icons_path  + 'g_translate.png'))
+        self.btn_chat.setIcon(QIcon(self.icons_path  + 'chat_bubble.png'))
+        self.btn_book.setIcon(QIcon(self.icons_path  + 'Book.png'))
+        self.btn_statistic.setIcon(QIcon(self.icons_path  + 'Trending up.png'))
+        self.btn_tasks.setIcon(QIcon(self.icons_path  + 'Check square.png'))
+        self.btn_list.setIcon(QIcon(self.icons_path  + 'List.png'))
+
+        self.btn_translator.setIconSize(QSize(80, 80))
+        self.btn_chat.setIconSize(QSize(80, 80))
+        self.btn_book.setIconSize(QSize(80, 80))
+        self.btn_statistic.setIconSize(QSize(80, 80))
+        self.btn_tasks.setIconSize(QSize(80, 80))
+        self.btn_list.setIconSize(QSize(80, 80))
+
+        self.btn_translator.setFixedSize(QSize(40, 40))
+        self.btn_chat.setFixedSize(QSize(40, 40))
+        self.btn_book.setFixedSize(QSize(40, 40))
+        self.btn_statistic.setFixedSize(QSize(40, 40))
+        self.btn_tasks.setFixedSize(QSize(40, 40))
+        self.btn_list.setFixedSize(QSize(40, 40))
+
+        files_up_panel_layout.addWidget(self.btn_translator)
+        files_up_panel_layout.addWidget(self.btn_chat)
+        files_up_panel_layout.addWidget(self.btn_book)
+        files_up_panel_layout.addWidget(self.btn_statistic)
+        files_up_panel_layout.addWidget(self.btn_tasks)
+        files_up_panel_layout.addWidget(self.btn_list)
+        
+        # files_down_layout
+        self.btn_mic = QPushButton('', self)
+        self.btn_photo = QPushButton('', self)
+        self.btn_attach_file = QPushButton('', self)
+        self.btn_Youtube = QPushButton('', self)
+        
+        self.btn_mic.setStyleSheet(self.buttons_css)
+        self.btn_photo.setStyleSheet(self.buttons_css)
+        self.btn_attach_file.setStyleSheet(self.buttons_css)
+        self.btn_Youtube.setStyleSheet(self.buttons_css)
+
+        self.btn_mic.setIcon(QIcon(self.icons_path  + 'mic.png'))
+        self.btn_photo.setIcon(QIcon(self.icons_path  + 'photo.png'))
+        self.btn_attach_file.setIcon(QIcon(self.icons_path  + 'attach_file.png'))
+        self.btn_Youtube.setIcon(QIcon(self.icons_path  + 'Youtube.png'))
+
+        self.btn_mic.setIconSize(QSize(80, 80))
+        self.btn_photo.setIconSize(QSize(80, 80))
+        self.btn_attach_file.setIconSize(QSize(80, 80))
+        self.btn_Youtube.setIconSize(QSize(80, 80))
+
+        self.btn_mic.setFixedSize(QSize(40, 40))
+        self.btn_photo.setFixedSize(QSize(40, 40))
+        self.btn_attach_file.setFixedSize(QSize(40, 40))
+        self.btn_Youtube.setFixedSize(QSize(40, 40))
+
+        files_down_layout.addWidget(self.btn_mic)
+        files_down_layout.addWidget(self.btn_photo)
+        files_down_layout.addWidget(self.btn_attach_file)
+        files_down_layout.addWidget(self.btn_Youtube)
+
+        files_up_panel = QWidget()
+        files_up_panel.setLayout(files_up_panel_layout)
+        files_down = QWidget()
+        files_down.setLayout(files_down_layout)
+
+        files_layout.addWidget(files_up_panel)
+        files_layout.addStretch(1000)
+        files_layout.addWidget(files_down)
+        file_manager.setLayout(files_layout)
+
+        return file_manager
 
     def dialog_critical(self, s):
         dlg = QMessageBox(self)
@@ -210,6 +325,20 @@ class MainWindow(QMainWindow):
 
     def edit_toggle_wrap(self):
         self.editor.setLineWrapMode(1 if self.editor.lineWrapMode() == 0 else 0 )
+    
+    def open_file_manager(self):
+        container = QWidget()
+        main_layout = QHBoxLayout()
+        if not self.is_file_manager_opened:
+            main_layout.addWidget(self.generate_file_manager())
+            self.btn_file_manager.setIcon(QIcon(self.icons_path  + 'Circle_arrow_down.png'))
+        else:
+            self.btn_file_manager.setIcon(QIcon(self.icons_path  + 'Circle_arrow.png'))
+        main_layout.addWidget(self.left_widget)
+        main_layout.addWidget(self.editor)
+        self.is_file_manager_opened = not(self.is_file_manager_opened)
+        container.setLayout(main_layout)
+        self.setCentralWidget(container)
 
     def summarise(self):
         print(self.editor.textCursor().selectedText())
