@@ -25,6 +25,20 @@ class Thread_Summarizator(QThread):
         self.signal.emit([self.selected_text, summary])
         self.quit()
 
+
+class Thread_Paraphrase(QThread):
+    signal = pyqtSignal(list)
+    def __init__(self, selected_text: str, llm_session: CreateLLMSession):
+        self.selected_text = selected_text
+        self.llm_session = llm_session
+        super(Thread_Paraphrase, self).__init__()
+
+    def run(self):
+        summary = self.llm_session.paraphrase(self.selected_text) # Should be async!
+        self.signal.emit([self.selected_text, summary])
+        self.quit()
+
+
 class Thread_Transtator(QThread):
     signal = pyqtSignal(list)
     def __init__(self, selected_text: str):
@@ -118,10 +132,20 @@ class MainWindow(QMainWindow):
         ai_tools_menu = self.menuBar().addMenu("AI Tools")
         ai_tools_menu.setStyleSheet("color: #FFFFFF;")
         
-        summ = QAction("Summarise", self)
-        summ.setStatusTip("Save current page")
-        summ.triggered.connect(self.summarise)
-        ai_tools_menu.addAction(summ)
+        summarize_action = QAction("Summarise", self)
+        summarize_action.setStatusTip("Summarise selected")
+        summarize_action.triggered.connect(self.summarise)
+        ai_tools_menu.addAction(summarize_action)
+
+        translate_action = QAction("Translate", self)
+        translate_action.setStatusTip("Translate selected")
+        translate_action.triggered.connect(self.translate)
+        ai_tools_menu.addAction(translate_action)
+
+        parahrase_action = QAction("Paraphrase", self)
+        parahrase_action.setStatusTip("Paraphrase selected")
+        parahrase_action.triggered.connect(self.paraphrase)
+        ai_tools_menu.addAction(parahrase_action)
 
         # wrap action
         wrap_action = QAction("Wrap text to window", self)
@@ -150,6 +174,10 @@ class MainWindow(QMainWindow):
         context_translate_ation = QAction("Translate", self)
         context_translate_ation.triggered.connect(self.translate)
         self.editor.addAction(context_translate_ation)
+
+        context_paraphrase_ation = QAction("Paraphrase", self)
+        context_paraphrase_ation.triggered.connect(self.paraphrase)
+        self.editor.addAction(context_paraphrase_ation)
 
         # LEFT PANEL
         self.icons_path = 'assets/Icons/'
@@ -399,11 +427,31 @@ class MainWindow(QMainWindow):
         self.temp_thread_translator = Thread_Transtator(selected_text)
         self.temp_thread_translator.signal.connect(self.update_text)
         self.temp_thread_translator.start()
+    
+
+    def paraphrase(self):
+        selected_text = self.editor.textCursor().selectedText()
+        self.temp_thread_paraphasor = Thread_Paraphrase(selected_text, self.llm_session)
+        self.temp_thread_paraphasor.signal.connect(self.update_text)
+        self.temp_thread_paraphasor.start()
 
     def update_text(self, signal):
         text = self.editor.toPlainText()
+        cursor = self.editor.textCursor()
+        new_pos = 0
+        if cursor.position() < text.find(signal[0]): # Calculating new cursor position
+            new_pos = cursor.position()
+        elif cursor.position() >= text.find(signal[0]) and cursor.position() <= text.find(signal[0]) + len(signal[0]):
+            new_pos = text.find(signal[0]) + len(signal[1])
+        elif cursor.position() > text.find(signal[0]) + len(signal[0]):
+            new_pos = cursor.position() + len(signal[1]) - len(signal[0])
+            print(cursor.position(), len(signal[1]), len(signal[0]))
+
         text = text.replace(signal[0], signal[1])
         self.editor.setPlainText(text)
+        print(new_pos)
+        cursor.setPosition(new_pos)
+        self.editor.setTextCursor(cursor)
 
 
 # drivers code
