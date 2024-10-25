@@ -13,10 +13,34 @@ model_config = {
 }
 
 
+class Thread_Summarizator(QThread):
+    signal = pyqtSignal(list)
+    def __init__(self, selected_text: str, llm_session: CreateLLMSession):
+        self.selected_text = selected_text
+        self.llm_session = llm_session
+        super(Thread_Summarizator, self).__init__()
+
+    def run(self):
+        summary = self.llm_session.summarize(self.selected_text) # Should be async!
+        self.signal.emit([self.selected_text, summary])
+        self.quit()
+
+class Thread_Transtator(QThread):
+    signal = pyqtSignal(list)
+    def __init__(self, selected_text: str):
+        self.selected_text = selected_text
+        super(Thread_Transtator, self).__init__()
+
+    def run(self):
+        translated = translate("en", "ru", self.selected_text)
+        self.signal.emit([self.selected_text, translated])
+        self.quit()
+
+
 class MainWindow(QMainWindow):
     def __init__(self, *args, **kwargs):
         super(MainWindow, self).__init__(*args, **kwargs)
-        self.setGeometry(100, 100, 600, 400)
+        self.setGeometry(100, 100, 1000, 600)
 
         self.setStyleSheet("background-color: #262627;")
         
@@ -366,20 +390,19 @@ class MainWindow(QMainWindow):
 
     def summarise(self):
         selected_text = self.editor.textCursor().selectedText()
-
-        summary = self.llm_session.summarize(selected_text) # Should be async!
-        
-        text = self.editor.toPlainText()
-        text = text.replace(selected_text, summary)
-        self.editor.setPlainText(text)
+        self.temp_thread = Thread_Summarizator(selected_text, self.llm_session)
+        self.temp_thread.signal.connect(self.update_text)
+        self.temp_thread.start()
     
     def translate(self):
         selected_text = self.editor.textCursor().selectedText()
+        self.temp_thread_translator = Thread_Transtator(selected_text)
+        self.temp_thread_translator.signal.connect(self.update_text)
+        self.temp_thread_translator.start()
 
-        translated = translate("en", "ru", selected_text) # Should be async!
-
+    def update_text(self, signal):
         text = self.editor.toPlainText()
-        text = text.replace(selected_text, translated)
+        text = text.replace(signal[0], signal[1])
         self.editor.setPlainText(text)
 
 
