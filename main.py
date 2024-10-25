@@ -67,6 +67,7 @@ class MainWindow(QMainWindow):
 
         self.path = None
         self.is_file_manager_opened = False
+        self.current_dir = QDir.currentPath()
 
         # FILE MENU
         file_menu = self.menuBar().addMenu("&File")
@@ -268,6 +269,7 @@ class MainWindow(QMainWindow):
         self.btn_statistic = QPushButton('', self)
         self.btn_tasks = QPushButton('', self)
         self.btn_list = QPushButton('', self)
+        self.btn_up_dir = QPushButton('', self)
         
         self.btn_translator.setStyleSheet(self.buttons_css)
         self.btn_chat.setStyleSheet(self.buttons_css)
@@ -275,6 +277,7 @@ class MainWindow(QMainWindow):
         self.btn_statistic.setStyleSheet(self.buttons_css)
         self.btn_tasks.setStyleSheet(self.buttons_css)
         self.btn_list.setStyleSheet(self.buttons_css)
+        self.btn_up_dir.setStyleSheet(self.buttons_css)
 
         self.btn_translator.setIcon(QIcon(self.icons_path  + 'g_translate.png'))
         self.btn_chat.setIcon(QIcon(self.icons_path  + 'chat_bubble.png'))
@@ -282,6 +285,8 @@ class MainWindow(QMainWindow):
         self.btn_statistic.setIcon(QIcon(self.icons_path  + 'Trending up.png'))
         self.btn_tasks.setIcon(QIcon(self.icons_path  + 'Check square.png'))
         self.btn_list.setIcon(QIcon(self.icons_path  + 'List.png'))
+        self.btn_up_dir.setIcon(QIcon(self.icons_path  + 'up_circle_arrow.png'))
+
 
         self.btn_translator.setIconSize(QSize(80, 80))
         self.btn_chat.setIconSize(QSize(80, 80))
@@ -289,6 +294,7 @@ class MainWindow(QMainWindow):
         self.btn_statistic.setIconSize(QSize(80, 80))
         self.btn_tasks.setIconSize(QSize(80, 80))
         self.btn_list.setIconSize(QSize(80, 80))
+        self.btn_up_dir.setIconSize(QSize(80, 80))
 
         self.btn_translator.setFixedSize(QSize(40, 40))
         self.btn_chat.setFixedSize(QSize(40, 40))
@@ -296,23 +302,26 @@ class MainWindow(QMainWindow):
         self.btn_statistic.setFixedSize(QSize(40, 40))
         self.btn_tasks.setFixedSize(QSize(40, 40))
         self.btn_list.setFixedSize(QSize(40, 40))
+        self.btn_up_dir.setFixedSize(QSize(40, 40))
 
+        files_up_panel_layout.addWidget(self.btn_up_dir)
         files_up_panel_layout.addWidget(self.btn_translator)
-        files_up_panel_layout.addWidget(self.btn_chat)
+        #files_up_panel_layout.addWidget(self.btn_chat)
         files_up_panel_layout.addWidget(self.btn_book)
         files_up_panel_layout.addWidget(self.btn_statistic)
         files_up_panel_layout.addWidget(self.btn_tasks)
-        files_up_panel_layout.addWidget(self.btn_list)
+        #files_up_panel_layout.addWidget(self.btn_list)
         
         self.btn_translator.pressed.connect(self.translate)
+        self.btn_up_dir.pressed.connect(self.file_manager_up_dir)
 
         # File manager
         self.file_manager_model = QFileSystemModel()
-        self.file_manager_model.setRootPath(QDir.currentPath())
+        self.file_manager_model.setRootPath(self.current_dir)
 
         self.file_manager_tree = QTreeView()
         self.file_manager_tree.setModel(self.file_manager_model)
-        self.file_manager_tree.setRootIndex(self.file_manager_model.index('/'))
+        self.file_manager_tree.setRootIndex(self.file_manager_model.index(self.current_dir))
         self.file_manager_tree.doubleClicked.connect(self.file_manager_on_double_clicked)
         self.file_manager_tree.setAnimated(False)
         self.file_manager_tree.setIndentation(20)
@@ -418,17 +427,26 @@ class MainWindow(QMainWindow):
     
     def open_file_manager(self):
         container = QWidget()
-        main_layout = QHBoxLayout()
+        right_container = QWidget()
+        main_layout = QSplitter()
+        right_layout = QHBoxLayout()
+
         if not self.is_file_manager_opened:
-            main_layout.addWidget(self.generate_file_manager())
+            file_manager = self.generate_file_manager()
+            file_manager.setMaximumWidth(420)
+            file_manager.setMinimumWidth(220)
+            main_layout.addWidget(file_manager)
             self.btn_file_manager.setIcon(QIcon(self.icons_path  + 'Circle_arrow_down.png'))
         else:
             self.btn_file_manager.setIcon(QIcon(self.icons_path  + 'Circle_arrow.png'))
-        main_layout.addWidget(self.left_widget)
-        main_layout.addWidget(self.editor)
         self.is_file_manager_opened = not(self.is_file_manager_opened)
-        container.setLayout(main_layout)
-        self.setCentralWidget(container)
+
+        right_layout.addWidget(self.left_widget)
+        right_layout.addWidget(self.editor)
+        right_container.setLayout(right_layout)
+        main_layout.addWidget(right_container)
+
+        self.setCentralWidget(main_layout)
 
     def summarise(self):
         selected_text = self.editor.textCursor().selectedText()
@@ -486,6 +504,10 @@ class MainWindow(QMainWindow):
                 self.path = file_name
                 self.editor.setPlainText(text)
                 self.update_title()
+    
+    def file_manager_up_dir(self):
+        self.current_dir = self.current_dir[:self.current_dir.rfind('/')]
+        self.file_manager_tree.setRootIndex(self.file_manager_model.index(self.current_dir))
 
 
 # drivers code
