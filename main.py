@@ -51,6 +51,52 @@ class Thread_Transtator(QThread):
         self.quit()
 
 
+class AminatedButton(QPushButton):
+    def __init__(self, *args, **kwargs):
+        super(AminatedButton, self).__init__(*args, **kwargs)
+        self._animation = QPropertyAnimation(
+            self, b'geometry', self, duration=200)
+
+    def updatePos(self):
+        #фиксированное значение геометрии
+        self._geometry = self.geometry()
+        self._rect = QRect(
+            self._geometry.x() - 6,
+            self._geometry.y() - 2,
+            self._geometry.width() + 8,
+            self._geometry.height() + 4
+        )
+
+    def showEvent(self, event):
+        super(AminatedButton, self).showEvent(event)
+        self.updatePos()
+
+    def enterEvent(self, event):
+        super(AminatedButton, self).enterEvent(event)
+        self._animation.stop()               # Остановить анимацию
+
+        # Изменить начальное значение анимации
+        self._animation.setStartValue(self._geometry)
+
+        # Изменить конечное значение анимации
+        self._animation.setEndValue(self._rect)
+        self._animation.start()
+
+    def leaveEvent(self, event):
+        super(AminatedButton, self).leaveEvent(event)
+        self._animation.stop()               
+        self._animation.setStartValue(self._rect)
+        self._animation.setEndValue(self._geometry)
+        self._animation.start()
+
+    def mousePressEvent(self, event):
+        self._animation.stop()  
+        self._animation.setStartValue(self._geometry)
+        self._animation.setEndValue(self._rect)
+        self._animation.start()
+        super(AminatedButton, self).mousePressEvent(event)
+
+
 class MainWindow(QMainWindow):
     def __init__(self, *args, **kwargs):
         super(MainWindow, self).__init__(*args, **kwargs)
@@ -59,7 +105,7 @@ class MainWindow(QMainWindow):
         self.setStyleSheet("background-color: #262627; color: #FFFFFF")
         
         self.editor = QPlainTextEdit()
-        self.editor.setStyleSheet("background-color: #1e1e1f; color: #FFFFFF") 
+        self.editor.setStyleSheet("background-color: #1e1e1f; color: #FFFFFF; border-radius: 5%;") 
 
         fixedfont = QFontDatabase.systemFont(QFontDatabase.FixedFont)
         fixedfont.setPointSize(12)
@@ -183,12 +229,12 @@ class MainWindow(QMainWindow):
         # LEFT PANEL
         self.icons_path = 'assets/Icons/'
         
-        self.btn_file_manager = QPushButton('', self)
-        self.btn_search = QPushButton('', self)
-        self.btn_time = QPushButton('', self)
-        self.btn_calendar = QPushButton('', self)
-        self.btn_inf = QPushButton('', self)
-        self.btn_settings = QPushButton('', self)
+        self.btn_file_manager = AminatedButton('', self)
+        self.btn_search = AminatedButton('', self)
+        self.btn_time = AminatedButton('', self)
+        self.btn_calendar = AminatedButton('', self)
+        self.btn_inf = AminatedButton('', self)
+        self.btn_settings = AminatedButton('', self)
         
         self.buttons_css = "color: #FFFFFF; border: none"
         self.btn_file_manager.setStyleSheet(self.buttons_css)
@@ -263,13 +309,13 @@ class MainWindow(QMainWindow):
         files_down_layout.setContentsMargins(0, 0, 0, 0)
 
         # files_up_panel
-        self.btn_translator = QPushButton('', self)
-        self.btn_chat = QPushButton('', self)
-        self.btn_book = QPushButton('', self)
-        self.btn_statistic = QPushButton('', self)
-        self.btn_tasks = QPushButton('', self)
-        self.btn_list = QPushButton('', self)
-        self.btn_up_dir = QPushButton('', self)
+        self.btn_translator = AminatedButton('', self)
+        self.btn_chat = AminatedButton('', self)
+        self.btn_book = AminatedButton('', self)
+        self.btn_statistic = AminatedButton('', self)
+        self.btn_tasks = AminatedButton('', self)
+        self.btn_list = AminatedButton('', self)
+        self.btn_up_dir = AminatedButton('', self)
         
         self.btn_translator.setStyleSheet(self.buttons_css)
         self.btn_chat.setStyleSheet(self.buttons_css)
@@ -329,10 +375,10 @@ class MainWindow(QMainWindow):
         self.file_manager_tree.setStyleSheet(self.buttons_css)
 
         # files_down_layout
-        self.btn_mic = QPushButton('', self)
-        self.btn_photo = QPushButton('', self)
-        self.btn_attach_file = QPushButton('', self)
-        self.btn_Youtube = QPushButton('', self)
+        self.btn_mic = AminatedButton('', self)
+        self.btn_photo = AminatedButton('', self)
+        self.btn_attach_file = AminatedButton('', self)
+        self.btn_Youtube = AminatedButton('', self)
         
         self.btn_mic.setStyleSheet(self.buttons_css)
         self.btn_photo.setStyleSheet(self.buttons_css)
