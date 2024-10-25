@@ -56,7 +56,7 @@ class MainWindow(QMainWindow):
         super(MainWindow, self).__init__(*args, **kwargs)
         self.setGeometry(100, 100, 1000, 600)
 
-        self.setStyleSheet("background-color: #262627;")
+        self.setStyleSheet("background-color: #262627; color: #FFFFFF")
         
         self.editor = QPlainTextEdit()
         self.editor.setStyleSheet("background-color: #1e1e1f; color: #FFFFFF") 
@@ -307,7 +307,17 @@ class MainWindow(QMainWindow):
         self.btn_translator.pressed.connect(self.translate)
 
         # File manager
-        
+        self.file_manager_model = QFileSystemModel()
+        self.file_manager_model.setRootPath(QDir.currentPath())
+
+        self.file_manager_tree = QTreeView()
+        self.file_manager_tree.setModel(self.file_manager_model)
+        self.file_manager_tree.setRootIndex(self.file_manager_model.index('/'))
+        self.file_manager_tree.doubleClicked.connect(self.file_manager_on_double_clicked)
+        self.file_manager_tree.setAnimated(False)
+        self.file_manager_tree.setIndentation(20)
+        self.file_manager_tree.setSortingEnabled(True)
+        self.file_manager_tree.setStyleSheet(self.buttons_css)
 
         # files_down_layout
         self.btn_mic = QPushButton('', self)
@@ -346,7 +356,8 @@ class MainWindow(QMainWindow):
         files_down.setLayout(files_down_layout)
 
         files_layout.addWidget(files_up_panel)
-        files_layout.addStretch(1000)
+        #files_layout.addStretch(1000)
+        files_layout.addWidget(self.file_manager_tree)
         files_layout.addWidget(files_down)
         file_manager.setLayout(files_layout)
 
@@ -363,7 +374,7 @@ class MainWindow(QMainWindow):
                             "Text documents (*.txt);;All files (*.*)")
         if path:
             try:
-                with open(path, 'rU') as f:
+                with open(path, 'r+') as f:
                     text = f.read()
             except Exception as e:
                 self.dialog_critical(str(e))
@@ -462,6 +473,19 @@ class MainWindow(QMainWindow):
         msg.setText("This is a program to work with text, conspects.")
         msg.setIconPixmap(QPixmap(self.icons_path + 'mascot.png'))
         x = msg.exec_()
+
+    def file_manager_on_double_clicked(self, index):
+        file_name = self.file_manager_model.filePath(index)
+        if file_name:
+            try:
+                with open(file_name, 'r+') as f:
+                    text = f.read()
+            except Exception as e:
+                self.dialog_critical(str(e))
+            else:
+                self.path = file_name
+                self.editor.setPlainText(text)
+                self.update_title()
 
 
 # drivers code
