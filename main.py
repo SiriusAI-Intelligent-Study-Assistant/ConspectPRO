@@ -219,6 +219,7 @@ class MainWindow(QMainWindow):
         self.btn_settings.setFixedSize(QSize(40, 40))
 
         self.btn_file_manager.pressed.connect(self.open_file_manager)
+        self.btn_inf.pressed.connect(self.show_info)
 
         left_layout = QVBoxLayout()
         left_layout.setSpacing(30)
@@ -305,6 +306,9 @@ class MainWindow(QMainWindow):
         
         self.btn_translator.pressed.connect(self.translate)
 
+        # File manager
+        
+
         # files_down_layout
         self.btn_mic = QPushButton('', self)
         self.btn_photo = QPushButton('', self)
@@ -386,7 +390,6 @@ class MainWindow(QMainWindow):
                 f.write(text)
         except Exception as e:
             self.dialog_critical(str(e))
-
         else:
             self.path = path
             self.update_title()
@@ -452,11 +455,19 @@ class MainWindow(QMainWindow):
         print(new_pos)
         cursor.setPosition(new_pos)
         self.editor.setTextCursor(cursor)
+    
+    def show_info(self):
+        msg = QMessageBox()
+        msg.setWindowTitle("ConspectPRO")
+        msg.setText("This is a program to work with text, conspects.")
+        msg.setIconPixmap(QPixmap(self.icons_path + 'mascot.png'))
+        x = msg.exec_()
 
 
 # drivers code
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     app.setApplicationName("ConspectPRO")
+    app.setWindowIcon(QIcon('assets/Icons/mascot.png'))
     window = MainWindow()
     app.exec_()
