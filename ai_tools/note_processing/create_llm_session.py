@@ -19,7 +19,7 @@ class CreateLLMSession:
             case "mistral":
                 self.model = MistralAI_API(model_config["API_KEY"])
             case "GigaChat":
-                self.model = MistralAI_API(model_config["API_KEY"])
+                ...
             case _:
                 raise NameError("Incorrect model name")
             
@@ -51,3 +51,6 @@ class CreateLLMSession:
         except Exception as e:
             logging.error(f'[chat]: "{text}", type: {type(text)}' + ' | ' + repr(e))
             raise
+
+    def get_chat_history(self) -> str:
+        return self.chat_history

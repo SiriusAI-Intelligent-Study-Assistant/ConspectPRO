@@ -15,6 +15,7 @@
     - [summarize](#суммаризация)
     - [paraphrase](#перефразирование)
     - [chat](#чат)
+    - [get_chat_history](#получение-истории-чата)
 - [translate](#перевод)
 
 ---
@@ -47,12 +48,8 @@ llm_session = CreateLLMSession( model_config )
   такие как ответы на вопросы, обобщение документов, языковые 
   переводы и составление предложений. LLM могут кардинально 
   повлиять на создание контента и использованию людьми поисковых 
-<<<<<<< HEAD
   систем и виртуальных помощников.
   '''
-=======
-  систем и виртуальных помощников.'''
->>>>>>> b8436e9d18abd3d0756821ec385f002bb83e7381
 
   llm_session.summarize( text )
   ```
@@ -68,4 +65,10 @@ llm_session = CreateLLMSession( model_config )
   llm_session.chat( 'Что ещё умеют LLM?' )
   llm_session.chat( 'О чём мы говорим?' )
   ```
+
+- ### Получение истории чата:
+    ```Python
+    llm_session.get_chat_history()
+    ```
+
 ---

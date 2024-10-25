@@ -1,5 +1,5 @@
-sirius_ai/
+.sirius_ai/
 __pycache__/
 log.log
 .env
-.venv
+.venv/
