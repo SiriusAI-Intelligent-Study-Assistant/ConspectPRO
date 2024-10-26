@@ -1,9 +1,9 @@
 import wave
 import contextlib
 import locale
-import whisper
+#import whisper
 import logging
-import librosa
+#import librosa
 import torch
 import torchaudio
 import torchaudio.functional as F

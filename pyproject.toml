@@ -7,10 +7,9 @@ license = "Attribution-NonCommercial-ShareAlike 4.0 International"
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = "^3.11"
+python = "^3.12"
 translate = "^3.6.1"
 mistralai = "^1.1.0"
-python-dotenv = "^1.0.1"
 
 
 [build-system]
