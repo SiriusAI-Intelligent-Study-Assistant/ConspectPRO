@@ -46,7 +46,10 @@ class Thread_Transtator(QThread):
         super(Thread_Transtator, self).__init__()
 
     def run(self):
-        translated = translate("autodetect", "ru", self.selected_text)
+        translated = ""
+        for sentence in self.selected_text.split('.'):
+            if sentence != '':
+                translated += translate("autodetect", "ru", sentence + '.')
         self.signal.emit([self.selected_text, translated])
         self.quit()
 
@@ -530,22 +533,21 @@ class MainWindow(QMainWindow):
 
         self.is_file_manager_opened = not(self.is_file_manager_opened)
 
+    def get_selected_text(self):
+        return self.editor.toPlainText()[self.editor.textCursor().selectionStart():self.editor.textCursor().selectionEnd()]
+
     def summarise(self):
-        selected_text = self.editor.toPlainText()[self.editor.textCursor().selectionStart():self.editor.textCursor().selectionEnd()]
-        self.temp_thread = Thread_Summarizator(selected_text, self.llm_session)
+        self.temp_thread = Thread_Summarizator(self.get_selected_text(), self.llm_session)
         self.temp_thread.signal.connect(self.update_text)
         self.temp_thread.start()
     
     def translate(self):
-        selected_text = self.editor.toPlainText()[self.editor.textCursor().selectionStart():self.editor.textCursor().selectionEnd()]
-        self.temp_thread_translator = Thread_Transtator(selected_text)
+        self.temp_thread_translator = Thread_Transtator(self.get_selected_text())
         self.temp_thread_translator.signal.connect(self.update_text)
         self.temp_thread_translator.start()
-    
 
     def paraphrase(self):
-        selected_text = self.editor.toPlainText()[self.editor.textCursor().selectionStart():self.editor.textCursor().selectionEnd()]
-        self.temp_thread_paraphasor = Thread_Paraphrase(selected_text, self.llm_session)
+        self.temp_thread_paraphasor = Thread_Paraphrase(self.get_selected_text(), self.llm_session)
         self.temp_thread_paraphasor.signal.connect(self.update_text)
         self.temp_thread_paraphasor.start()
 
@@ -563,7 +565,6 @@ class MainWindow(QMainWindow):
         self.editor.setPlainText(text)
         cursor.setPosition(new_pos)
         self.editor.setTextCursor(cursor)
-        
     
     def show_info(self):
         msg = QMessageBox()
