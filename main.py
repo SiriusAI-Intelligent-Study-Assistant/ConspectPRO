@@ -12,6 +12,8 @@ model_config = {
     "model_name": "mistral",
 }
 
+#МЕСТО ДЛЯ СЛОВАРЕЙ/ЯЗЫКОВ
+
 
 class Thread_Summarizator(QThread):
     signal = pyqtSignal(list)
@@ -46,7 +48,7 @@ class Thread_Transtator(QThread):
         super(Thread_Transtator, self).__init__()
 
     def run(self):
-        translated = translate("autodetect", "ru", self.selected_text)
+        translated = translate("en", "ru", self.selected_text)
         self.signal.emit([self.selected_text, translated])
         self.quit()
 
@@ -98,6 +100,28 @@ class AminatedButton(QPushButton):
         self._animation.start()
         super(AminatedButton, self).mousePressEvent(event)
 
+
+class SettingsWindow(QWidget):
+    def __init__(self, parent=None):
+        super().__init__()
+        AppLang = QComboBox()
+        AppLang.addItems(["English", "Russian"])
+        TransLang = QComboBox()
+        TransLang.addItems(["English", "Russian"])
+        self.SettingsLayout = QVBoxLayout()
+        self.SettingsLayout.addWidget(QLabel("App Language"))
+        self.SettingsLayout.addWidget(AppLang)
+        self.SettingsLayout.addWidget(QLabel("Translation Language"))
+        self.SettingsLayout.addWidget(TransLang)
+        self.textbox = QLineEdit(placeholderText="APIKEY?")
+        self.SettingsLayout.addWidget(QLabel("API key for MistralAI"))
+        self.textbox.setText(MISTRAL_API_KEY)
+        self.SettingsLayout.addWidget(self.textbox)
+        self.setWindowTitle("Settings")
+        self.setStyleSheet("background-color: #262627; color: #FFFFFF")
+        self.setGeometry(170, 600, 200, 50)
+        self.setLayout(self.SettingsLayout)
+        self.show()
 
 class MainWindow(QMainWindow):
     def __init__(self, *args, **kwargs):
@@ -204,8 +228,8 @@ class MainWindow(QMainWindow):
         wrap_action.triggered.connect(self.edit_toggle_wrap)
         edit_menu.addAction(wrap_action)
 
-        # calling update title method
         self.update_title()
+        # right mouse button menu
 
         self.editor.setContextMenuPolicy(Qt.ActionsContextMenu)
         context_copy_ation = QAction("Copy", self)
@@ -276,6 +300,7 @@ class MainWindow(QMainWindow):
 
         self.btn_file_manager.pressed.connect(self.open_file_manager)
         self.btn_inf.pressed.connect(self.show_info)
+        self.btn_settings.pressed.connect(self.settings_win)
 
         left_layout = QVBoxLayout()
         left_layout.setSpacing(30)
@@ -531,20 +556,20 @@ class MainWindow(QMainWindow):
         self.is_file_manager_opened = not(self.is_file_manager_opened)
 
     def summarise(self):
-        selected_text = self.editor.toPlainText()[self.editor.textCursor().selectionStart():self.editor.textCursor().selectionEnd()]
+        selected_text = self.editor.textCursor().selectedText()
         self.temp_thread = Thread_Summarizator(selected_text, self.llm_session)
         self.temp_thread.signal.connect(self.update_text)
         self.temp_thread.start()
     
     def translate(self):
-        selected_text = self.editor.toPlainText()[self.editor.textCursor().selectionStart():self.editor.textCursor().selectionEnd()]
+        selected_text = self.editor.textCursor().selectedText()
         self.temp_thread_translator = Thread_Transtator(selected_text)
         self.temp_thread_translator.signal.connect(self.update_text)
         self.temp_thread_translator.start()
     
 
     def paraphrase(self):
-        selected_text = self.editor.toPlainText()[self.editor.textCursor().selectionStart():self.editor.textCursor().selectionEnd()]
+        selected_text = self.editor.textCursor().selectedText()
         self.temp_thread_paraphasor = Thread_Paraphrase(selected_text, self.llm_session)
         self.temp_thread_paraphasor.signal.connect(self.update_text)
         self.temp_thread_paraphasor.start()
@@ -563,7 +588,6 @@ class MainWindow(QMainWindow):
         self.editor.setPlainText(text)
         cursor.setPosition(new_pos)
         self.editor.setTextCursor(cursor)
-        
     
     def show_info(self):
         msg = QMessageBox()
@@ -588,6 +612,9 @@ class MainWindow(QMainWindow):
     def file_manager_up_dir(self):
         self.current_dir = self.current_dir[:self.current_dir.rfind('/')]
         self.file_manager_tree.setRootIndex(self.file_manager_model.index(self.current_dir))
+
+    def settings_win(self):
+        self.settings_win = SettingsWindow()
 
 
 # drivers code
