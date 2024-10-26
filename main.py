@@ -54,17 +54,23 @@ class Thread_Transtator(QThread):
 class AminatedButton(QPushButton):
     def __init__(self, *args, **kwargs):
         super(AminatedButton, self).__init__(*args, **kwargs)
+        self.x_shift = 0
+        self.y_shift = 0
         self._animation = QPropertyAnimation(
             self, b'geometry', self, duration=200)
 
+    def set_shift(self, x_shift: int, y_shift: int):
+        self.x_shift = x_shift
+        self.y_shift = y_shift
+    
     def updatePos(self):
         #фиксированное значение геометрии
         self._geometry = self.geometry()
         self._rect = QRect(
-            self._geometry.x() - 6,
-            self._geometry.y() - 2,
-            self._geometry.width() + 8,
-            self._geometry.height() + 4
+            self._geometry.x() - self.x_shift,
+            self._geometry.y() - self.y_shift,
+            self._geometry.width(),
+            self._geometry.height()
         )
 
     def showEvent(self, event):
@@ -73,12 +79,8 @@ class AminatedButton(QPushButton):
 
     def enterEvent(self, event):
         super(AminatedButton, self).enterEvent(event)
-        self._animation.stop()               # Остановить анимацию
-
-        # Изменить начальное значение анимации
+        self._animation.stop()
         self._animation.setStartValue(self._geometry)
-
-        # Изменить конечное значение анимации
         self._animation.setEndValue(self._rect)
         self._animation.start()
 
@@ -244,6 +246,13 @@ class MainWindow(QMainWindow):
         self.btn_inf.setStyleSheet(self.buttons_css)
         self.btn_settings.setStyleSheet(self.buttons_css)
 
+        self.btn_file_manager.set_shift(8, 0)
+        self.btn_search.set_shift(8, 0)
+        self.btn_time.set_shift(8, 0)
+        self.btn_calendar.set_shift(8, 0)
+        self.btn_inf.set_shift(8, 0)
+        self.btn_settings.set_shift(8, 0)
+
         self.btn_file_manager.setIcon(QIcon(self.icons_path  + 'Circle_arrow.png'))
         self.btn_search.setIcon(QIcon(self.icons_path  + 'Search.png'))
         self.btn_time.setIcon(QIcon(self.icons_path  + 'Clock.png'))
@@ -325,6 +334,14 @@ class MainWindow(QMainWindow):
         self.btn_list.setStyleSheet(self.buttons_css)
         self.btn_up_dir.setStyleSheet(self.buttons_css)
 
+        self.btn_translator.set_shift(0, 5)
+        self.btn_chat.set_shift(0, 5)
+        self.btn_book.set_shift(0, 5)
+        self.btn_statistic.set_shift(0, 5)
+        self.btn_tasks.set_shift(0, 5)
+        self.btn_list.set_shift(0, 5)
+        self.btn_up_dir.set_shift(0, 3)
+
         self.btn_translator.setIcon(QIcon(self.icons_path  + 'g_translate.png'))
         self.btn_chat.setIcon(QIcon(self.icons_path  + 'chat_bubble.png'))
         self.btn_book.setIcon(QIcon(self.icons_path  + 'Book.png'))
@@ -333,14 +350,13 @@ class MainWindow(QMainWindow):
         self.btn_list.setIcon(QIcon(self.icons_path  + 'List.png'))
         self.btn_up_dir.setIcon(QIcon(self.icons_path  + 'up_circle_arrow.png'))
 
-
         self.btn_translator.setIconSize(QSize(80, 80))
         self.btn_chat.setIconSize(QSize(80, 80))
         self.btn_book.setIconSize(QSize(80, 80))
         self.btn_statistic.setIconSize(QSize(80, 80))
         self.btn_tasks.setIconSize(QSize(80, 80))
         self.btn_list.setIconSize(QSize(80, 80))
-        self.btn_up_dir.setIconSize(QSize(80, 80))
+        self.btn_up_dir.setIconSize(QSize(35, 35))
 
         self.btn_translator.setFixedSize(QSize(40, 40))
         self.btn_chat.setFixedSize(QSize(40, 40))
@@ -348,7 +364,7 @@ class MainWindow(QMainWindow):
         self.btn_statistic.setFixedSize(QSize(40, 40))
         self.btn_tasks.setFixedSize(QSize(40, 40))
         self.btn_list.setFixedSize(QSize(40, 40))
-        self.btn_up_dir.setFixedSize(QSize(40, 40))
+        self.btn_up_dir.setFixedSize(QSize(35, 35))
 
         files_up_panel_layout.addWidget(self.btn_up_dir)
         files_up_panel_layout.addWidget(self.btn_translator)
@@ -384,6 +400,11 @@ class MainWindow(QMainWindow):
         self.btn_photo.setStyleSheet(self.buttons_css)
         self.btn_attach_file.setStyleSheet(self.buttons_css)
         self.btn_Youtube.setStyleSheet(self.buttons_css)
+
+        self.btn_mic.set_shift(0, 5)
+        self.btn_photo.set_shift(0, 5)
+        self.btn_attach_file.set_shift(0, 5)
+        self.btn_Youtube.set_shift(0, 5)
 
         self.btn_mic.setIcon(QIcon(self.icons_path  + 'mic.png'))
         self.btn_photo.setIcon(QIcon(self.icons_path  + 'photo.png'))
