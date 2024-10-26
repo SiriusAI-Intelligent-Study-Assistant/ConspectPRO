@@ -499,21 +499,36 @@ class MainWindow(QMainWindow):
         right_layout = QHBoxLayout()
 
         if not self.is_file_manager_opened:
-            file_manager = self.generate_file_manager()
-            file_manager.setMaximumWidth(420)
-            file_manager.setMinimumWidth(220)
-            main_layout.addWidget(file_manager)
+            self.file_manager = self.generate_file_manager()
+            self.file_manager.setMaximumWidth(420)
+            self.file_manager.setMinimumWidth(220)
+            main_layout.addWidget(self.file_manager)
             self.btn_file_manager.setIcon(QIcon(self.icons_path  + 'Circle_arrow_down.png'))
+
+            self.file_manager_effect = QGraphicsOpacityEffect(self.file_manager)
+            self.file_manager.setGraphicsEffect(self.file_manager_effect)
+            self.anim = QPropertyAnimation(self.file_manager, b"pos")
+            self.anim.setStartValue(QPoint(-500, 0))
+            self.anim.setEndValue(QPoint(0, 0))
+            self.anim.setDuration(300)
+            self.anim_2 = QPropertyAnimation(self.file_manager_effect, b"opacity")
+            self.anim_2.setStartValue(0)
+            self.anim_2.setEndValue(1)
+            self.anim_2.setDuration(300)
+            self.anim_group = QParallelAnimationGroup()
+            self.anim_group.addAnimation(self.anim)
+            self.anim_group.addAnimation(self.anim_2)
+            self.anim_group.start()
         else:
             self.btn_file_manager.setIcon(QIcon(self.icons_path  + 'Circle_arrow.png'))
-        self.is_file_manager_opened = not(self.is_file_manager_opened)
 
         right_layout.addWidget(self.left_widget)
         right_layout.addWidget(self.editor)
         right_container.setLayout(right_layout)
         main_layout.addWidget(right_container)
-
         self.setCentralWidget(main_layout)
+
+        self.is_file_manager_opened = not(self.is_file_manager_opened)
 
     def summarise(self):
         selected_text = self.editor.textCursor().selectedText()
@@ -544,18 +559,15 @@ class MainWindow(QMainWindow):
             new_pos = text.find(signal[0]) + len(signal[1])
         elif cursor.position() > text.find(signal[0]) + len(signal[0]):
             new_pos = cursor.position() + len(signal[1]) - len(signal[0])
-            print(cursor.position(), len(signal[1]), len(signal[0]))
-
         text = text.replace(signal[0], signal[1])
         self.editor.setPlainText(text)
-        print(new_pos)
         cursor.setPosition(new_pos)
         self.editor.setTextCursor(cursor)
     
     def show_info(self):
         msg = QMessageBox()
         msg.setWindowTitle("ConspectPRO")
-        msg.setText("This is a program to work with text, conspects.")
+        msg.setText("This is a program to work with text and conspects.")
         msg.setIconPixmap(QPixmap(self.icons_path + 'mascot.png'))
         x = msg.exec_()
 
