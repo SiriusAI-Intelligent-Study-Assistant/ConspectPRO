@@ -46,7 +46,7 @@ class Thread_Transtator(QThread):
         super(Thread_Transtator, self).__init__()
 
     def run(self):
-        translated = translate("en", "ru", self.selected_text)
+        translated = translate("autodetect", "ru", self.selected_text)
         self.signal.emit([self.selected_text, translated])
         self.quit()
 
@@ -563,6 +563,7 @@ class MainWindow(QMainWindow):
         self.editor.setPlainText(text)
         cursor.setPosition(new_pos)
         self.editor.setTextCursor(cursor)
+        #print(signal[0], signal[1])
     
     def show_info(self):
         msg = QMessageBox()
