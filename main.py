@@ -126,6 +126,32 @@ class SettingsWindow(QWidget):
         self.setLayout(self.SettingsLayout)
         self.show()
 
+
+class MDRenderWindow(QWidget):
+    def __init__(self, parent=None):
+        super().__init__()
+        self.SettingsLayout = QVBoxLayout()
+        self.output_editor = QTextEdit(self,
+                        lineWrapColumnOrWidth = 100,
+                        readOnly = True,
+                        acceptRichText = False
+        )
+        self.output_editor.setContextMenuPolicy(Qt.NoContextMenu)
+        self.output_editor.setObjectName('Output')
+        self.SettingsLayout.addWidget(self.output_editor)
+        fixedfont = QFontDatabase.systemFont(QFontDatabase.FixedFont)
+        fixedfont.setPointSize(12)
+        self.output_editor.setFont(fixedfont)
+        self.setWindowTitle("MarkDown Render")
+        self.setStyleSheet("background-color: #262627; color: #FFFFFF")
+        self.setGeometry(100, 100, 600, 600)
+        self.setLayout(self.SettingsLayout)
+        self.show()
+    
+    def update_text(self, text):
+        self.output_editor.setMarkdown(text)
+
+
 class MainWindow(QMainWindow):
     def __init__(self, *args, **kwargs):
         super(MainWindow, self).__init__(*args, **kwargs)
@@ -134,7 +160,7 @@ class MainWindow(QMainWindow):
         self.setStyleSheet("background-color: #262627; color: #FFFFFF")
         
         self.editor = QPlainTextEdit()
-        self.editor.setStyleSheet("background-color: #1e1e1f; color: #FFFFFF; border-radius: 5%;") 
+        self.editor.setStyleSheet("background-color: #1e1e1f; color: #FFFFFF; border-radius: 5%;")
 
         fixedfont = QFontDatabase.systemFont(QFontDatabase.FixedFont)
         fixedfont.setPointSize(12)
@@ -167,7 +193,12 @@ class MainWindow(QMainWindow):
         print_action = QAction("Print", self)
         print_action.setStatusTip("Print current page")
         print_action.triggered.connect(self.file_print)
-        file_menu.addAction(print_action) 
+        file_menu.addAction(print_action)
+
+        mdrender_action = QAction("Render MarkDown", self)
+        mdrender_action.setStatusTip("Render MarkDown")
+        mdrender_action.triggered.connect(self.md_render_win)
+        file_menu.addAction(mdrender_action)
     
         # EDIT MENU
         edit_menu = self.menuBar().addMenu("&Edit")
@@ -617,6 +648,10 @@ class MainWindow(QMainWindow):
 
     def settings_win(self):
         self.settings_win = SettingsWindow()
+    
+    def md_render_win(self):
+        self.md_render_win = MDRenderWindow()
+        self.md_render_win.update_text(self.editor.toPlainText())
 
 
 # drivers code
