@@ -48,10 +48,7 @@ class Thread_Transtator(QThread):
         super(Thread_Transtator, self).__init__()
 
     def run(self):
-        translated = ""
-        for sentence in self.selected_text.split('.'):
-            if sentence != '':
-                translated += translate("autodetect", "ru", sentence + '.') + ' '
+        translated = translate("ru", self.selected_text)
         self.signal.emit([self.selected_text, translated])
         self.quit()
 
