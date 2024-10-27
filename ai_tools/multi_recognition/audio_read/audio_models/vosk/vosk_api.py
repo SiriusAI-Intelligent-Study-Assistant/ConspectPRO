@@ -35,7 +35,7 @@ class VoskAudioModel:
     
     # Распознавание речи
     def recognize(self) -> str:
-        text = str
+        text = ""
 
         while True:
             data = self.wf.readframes(4000)

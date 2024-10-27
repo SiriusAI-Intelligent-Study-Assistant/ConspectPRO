@@ -4,14 +4,17 @@ from PyQt5.QtCore import *
 from PyQt5.QtPrintSupport import *
 import os
 import sys
-from ai_tools import CreateLLMSession, translate
+from ai_tools import CreateLLMSession, AudioRecognizer, translate
 from ai_tools.config import MISTRAL_API_KEY
 
 model_config = {
     "API_KEY": MISTRAL_API_KEY,
     "model_name": "mistral",
 }
-
+stt_model_config = {
+    "model_name": "vosk", # whisper
+    "model_path": "ai_tools\\multi_recognition\\audio_read\\audio_models\\vosk\\vosk-model-small-ru-0.22"
+  }
 #МЕСТО ДЛЯ СЛОВАРЕЙ/ЯЗЫКОВ
 
 
@@ -50,6 +53,21 @@ class Thread_Transtator(QThread):
     def run(self):
         translated = translate("ru", self.selected_text)
         self.signal.emit([self.selected_text, translated])
+        self.quit()
+
+
+class Thread_STT(QThread):
+    signal = pyqtSignal(str)
+    def __init__(self, file_path: str):
+        self.file_path = file_path
+        super(Thread_STT, self).__init__()
+
+    def run(self):
+        self.stt = AudioRecognizer(stt_model_config)
+        self.stt.load_model()
+        self.stt.file_open(self.file_path)
+        text = self.stt.recognize()
+        self.signal.emit(text)
         self.quit()
 
 
@@ -482,6 +500,8 @@ class MainWindow(QMainWindow):
         files_down_layout.addWidget(self.btn_attach_file)
         files_down_layout.addWidget(self.btn_Youtube)
 
+        self.btn_mic.pressed.connect(self.recognise_audio)
+
         files_up_panel = QWidget()
         files_up_panel.setLayout(files_up_panel_layout)
         files_down = QWidget()
@@ -603,7 +623,14 @@ class MainWindow(QMainWindow):
         self.temp_thread_paraphasor = Thread_Paraphrase(self.get_selected_text(), self.llm_session)
         self.temp_thread_paraphasor.signal.connect(self.update_text)
         self.temp_thread_paraphasor.start()
-
+    
+    def recognise_audio(self):
+        file_path, _ = QFileDialog.getOpenFileName(self, "Open file", "", 
+                            "Audio documents (*.wav);;All files (*.*)") # M4a, mp3 need to be added!
+        self.temp_thread_stt = Thread_STT(file_path)
+        self.temp_thread_stt.signal.connect(self.add_text)
+        self.temp_thread_stt.start()
+    
     def update_text(self, signal):
         text = self.editor.toPlainText()
         cursor = self.editor.textCursor()
@@ -619,6 +646,17 @@ class MainWindow(QMainWindow):
         cursor.setPosition(new_pos)
         self.editor.setTextCursor(cursor)
     
+    def add_text(self, signal):
+        text = self.editor.toPlainText()
+        cursor = self.editor.textCursor()
+        new_pos = cursor.position()
+
+        text += signal
+        
+        self.editor.setPlainText(text)
+        cursor.setPosition(new_pos)
+        self.editor.setTextCursor(cursor)
+
     def show_info(self):
         msg = QMessageBox()
         msg.setWindowTitle("ConspectPRO")
