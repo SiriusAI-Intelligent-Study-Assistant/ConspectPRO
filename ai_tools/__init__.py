@@ -14,6 +14,7 @@ logging.basicConfig(handlers=(file_log, console_out),
 locale.getpreferredencoding = lambda: "UTF-8"
 
 from .translator import translate
+from .multi_recognition.audio_read.audio_to_txt import AudioRecognizer
 from .note_processing.create_llm_session import CreateLLMSession
 from .config import *
 

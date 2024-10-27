@@ -2,6 +2,7 @@
 
 import sys
 sys.path.append('..')
+
 import ai_tools
 
 from ai_tools import translate
@@ -9,6 +10,11 @@ print(translate("ru", "en", "Привет, мир!"))
 
 from ai_tools import CreateLLMSession
 from ai_tools.config import MISTRAL_API_KEY
+
+from ai_tools import AudioRecognizer
+a = AudioRecognizer({"model_name": "vosk", "model_path": r"D:\Sirius_AI_code\ConspectPRO\ai_tools\multi_recognition\audio_read\audio_models\vosk\vosk-model-small-ru-0.22"})
+a.file_open("test_600.wav")
+print(a.recognize())
 
 a = CreateLLMSession({"model_name": "mistral", "API_KEY": MISTRAL_API_KEY})
 

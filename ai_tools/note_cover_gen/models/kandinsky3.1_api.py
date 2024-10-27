@@ -2,6 +2,7 @@
 
 import json
 import time
+import logging
 
 import requests
 
@@ -10,14 +11,15 @@ class Text2ImageAPI:
     '''
     Class for accessing the Kandinsky API
     '''
-    def __init__(self, url, api_key, secret_key):
+
+    def __init__(self, url: str, api_key: str, secret_key: str) -> None:
         self.URL = url
         self.AUTH_HEADERS = {
             'X-Key': f'Key {api_key}',
             'X-Secret': f'Secret {secret_key}',
         }
 
-    def get_model(self):
+    def get_model(self) -> str:
         response = requests.get(self.URL + 'key/api/v1/models', headers=self.AUTH_HEADERS)
         data = response.json()
         return data[0]['id']

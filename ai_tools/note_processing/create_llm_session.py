@@ -54,3 +54,6 @@ class CreateLLMSession:
 
     def get_chat_history(self) -> str:
         return self.chat_history
+    
+    def test_gen(self, context: str) -> dict:
+        return {"Info": "In development"}

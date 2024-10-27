@@ -17,6 +17,8 @@
     - [chat](#чат)
     - [get_chat_history](#получение-истории-чата)
 - [translate](#перевод)
+- [Multi-recognize](#распознавание-мультиконтента)
+    - [audio](#распознавание-аудио)
 
 ---
 ## Перевод:
@@ -72,3 +74,19 @@ llm_session = CreateLLMSession( model_config )
     ```
 
 ---
+## Распознавание мультиконтента
+
+- ### Распознавание аудио:
+  ```Python
+  from ai_tools import AudioRecognizer
+
+  model_config = {
+    "model_name": "vosk", # whisper
+    "model_path": "vosk-model-small-ru-0.22"
+  }
+
+  stt = AudioRecognizer( model_config )
+
+  stt.file_open( "test.wav" )
+  stt.recognize()
+  ```
