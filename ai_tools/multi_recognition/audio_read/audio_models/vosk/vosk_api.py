@@ -46,4 +46,5 @@ class VoskAudioModel:
                 text += result['text']
         
         logging.info(f'Audio file recognized: "{text}"')
+        self.wf.close()
         return text

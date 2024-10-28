@@ -4,6 +4,7 @@ from PyQt5.QtCore import *
 from PyQt5.QtPrintSupport import *
 import os
 import sys
+
 from ai_tools import CreateLLMSession, AudioRecognizer, translate
 from ai_tools.config import MISTRAL_API_KEY
 
@@ -15,6 +16,7 @@ stt_model_config = {
     "model_name": "vosk", # whisper
     "model_path": "ai_tools\\multi_recognition\\audio_read\\audio_models\\vosk\\vosk-model-small-ru-0.22"
   }
+
 #МЕСТО ДЛЯ СЛОВАРЕЙ/ЯЗЫКОВ
 
 
@@ -68,6 +70,7 @@ class Thread_STT(QThread):
         self.stt.file_open(self.file_path)
         text = self.stt.recognize()
         self.signal.emit(text)
+        os.remove(f'media/{os.path.basename(self.file_path).split(".")[0]}_audio.wav')
         self.quit()
 
 
@@ -501,6 +504,7 @@ class MainWindow(QMainWindow):
         files_down_layout.addWidget(self.btn_Youtube)
 
         self.btn_mic.pressed.connect(self.recognise_audio)
+        self.btn_Youtube.pressed.connect(self.recognise_video)
 
         files_up_panel = QWidget()
         files_up_panel.setLayout(files_up_panel_layout)
@@ -625,11 +629,24 @@ class MainWindow(QMainWindow):
         self.temp_thread_paraphasor.start()
     
     def recognise_audio(self):
+        if not os.path.exists("media"):
+            os.makedirs("media")
         file_path, _ = QFileDialog.getOpenFileName(self, "Open file", "", 
-                            "Audio documents (*.wav);;All files (*.*)") # M4a, mp3 need to be added!
-        self.temp_thread_stt = Thread_STT(file_path)
-        self.temp_thread_stt.signal.connect(self.add_text)
-        self.temp_thread_stt.start()
+                            "Audio files (*.mp3; *.wav; *.m4a);;All files (*.*)")
+        if file_path:
+            self.temp_thread_stt = Thread_STT(file_path)
+            self.temp_thread_stt.signal.connect(self.add_text)
+            self.temp_thread_stt.start()
+    
+    def recognise_video(self):
+        if not os.path.exists("media"):
+            os.makedirs("media")
+        file_path, _ = QFileDialog.getOpenFileName(self, "Open file", "", 
+                            "Video files (*.mp4; *.mov; *.m4v);;All files (*.*)")
+        if file_path:
+            self.temp_thread_stt = Thread_STT(file_path)
+            self.temp_thread_stt.signal.connect(self.add_text)
+            self.temp_thread_stt.start()
     
     def update_text(self, signal):
         text = self.editor.toPlainText()
