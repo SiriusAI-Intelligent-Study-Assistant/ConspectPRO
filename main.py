@@ -4,6 +4,7 @@ from PyQt5.QtCore import *
 from PyQt5.QtPrintSupport import *
 import os
 import sys
+import io
 
 from ai_tools import CreateLLMSession, AudioRecognizer, translate
 from ai_tools.config import MISTRAL_API_KEY
@@ -146,6 +147,7 @@ class SettingsWindow(QWidget):
 
 
 class MDRenderWindow(QWidget):
+    signal_quit = pyqtSignal()
     def __init__(self, parent=None):
         super().__init__()
         self.SettingsLayout = QVBoxLayout()
@@ -168,6 +170,9 @@ class MDRenderWindow(QWidget):
     
     def update_text(self, text):
         self.output_editor.setMarkdown(text)
+    
+    def closeEvent(self, event):
+        self.signal_quit.emit()
 
 
 class MainWindow(QMainWindow):
@@ -530,7 +535,7 @@ class MainWindow(QMainWindow):
                             "Text documents (*.txt);;All files (*.*)")
         if path:
             try:
-                with open(path, 'r+') as f:
+                with io.open(path, encoding='utf-8') as f:
                     text = f.read()
             except Exception as e:
                 self.dialog_critical(str(e))
@@ -685,7 +690,7 @@ class MainWindow(QMainWindow):
         file_name = self.file_manager_model.filePath(index)
         if file_name:
             try:
-                with open(file_name, 'r+') as f:
+                with io.open(file_name, encoding='utf-8') as f:
                     text = f.read()
             except Exception as e:
                 self.dialog_critical(str(e))
@@ -704,6 +709,16 @@ class MainWindow(QMainWindow):
     def md_render_win(self):
         self.md_render_win = MDRenderWindow()
         self.md_render_win.update_text(self.editor.toPlainText())
+        self.editor.textChanged.connect(self.update_md_render)
+        self.md_render_win.signal_quit.connect(self.md_render_close)
+    
+    def update_md_render(self):
+        if self.md_render_win:
+            self.md_render_win.update_text(self.editor.toPlainText())
+
+    def md_render_close(self):
+        self.editor.textChanged.disconnect(self.update_md_render)
+
 
 
 # drivers code
