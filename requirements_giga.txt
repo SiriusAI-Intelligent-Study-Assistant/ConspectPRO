@@ -137,7 +137,7 @@ nerfacc==0.5.3
 nest-asyncio==1.6.0
 networkx==3.3
 ninja==1.11.1.1
-nltk==3.8.1
+nltk==3.9
 numba==0.60.0
 numcodecs==0.12.1
 numpy==1.26.4
