@@ -154,7 +154,7 @@ nvidia-nccl-cu12==2.20.5
 nvidia-nvjitlink-cu12==12.5.82
 nvidia-nvtx-cu12==12.1.105
 omegaconf==2.3.0
-onnx==1.16.1
+onnx==1.17.0
 open_clip_torch==2.26.1
 openai-whisper @ git+https://github.com/openai/whisper.git@ba3f3cd54b0e5b8ce1ab3de13e32122d0d5f98ab
 OpenCC==1.1.6
