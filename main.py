@@ -5,6 +5,8 @@ from PyQt5.QtPrintSupport import *
 import os
 import sys
 import io
+from random import randrange
+
 
 from ai_tools import CreateLLMSession, AudioRecognizer, translate
 from ai_tools.config import MISTRAL_API_KEY
@@ -175,6 +177,114 @@ class MDRenderWindow(QWidget):
         self.signal_quit.emit()
 
 
+class WrapLabel(QTextEdit):
+    def __init__(self, text=''):
+        super().__init__(text)
+        self.setStyleSheet('''
+            WrapLabel {
+                border: 1px outset palette(dark);
+                border-radius: 8px;
+                background: palette(light);
+            }
+        ''')
+        self.setReadOnly(True)
+        self.setSizePolicy(QSizePolicy.Preferred, 
+            QSizePolicy.Maximum)
+        
+        self.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.textChanged.connect(self.updateGeometry)
+
+    def minimumSizeHint(self):
+        doc = self.document().clone()
+        doc.setTextWidth(self.viewport().width())
+        height = doc.size().height()
+        height += self.frameWidth() * 2
+        return QSize(150, int(height-100))
+
+    def sizeHint(self):
+        return self.minimumSizeHint()
+
+    def resizeEvent(self, event):
+        super().resizeEvent(event)
+        self.updateGeometry()
+
+
+class Chat(QScrollArea):
+    def __init__(self, llm_session):
+        super().__init__()
+
+        layout = QVBoxLayout()
+
+        self.chat_display = QWidget()
+        layout.addWidget(self.chat_display)
+        self.setMinimumSize(250, 250)
+        self.setWidgetResizable(True)
+        self.resize(480, 360)
+
+        send_message_panel_layout = QHBoxLayout()
+
+        self.message_input = QLineEdit()
+        send_message_panel_layout.addWidget(self.message_input)
+
+        send_button = QPushButton('Отправить')
+        send_button.clicked.connect(self.sendMessage)
+        send_message_panel_layout.addWidget(send_button)
+
+        send_message_panel = QWidget()
+        send_message_panel.setLayout(send_message_panel_layout)
+        layout.addWidget(send_message_panel)
+        
+        chat_display_layout = QVBoxLayout(self.chat_display)
+        chat_display_layout.addStretch()
+
+        container = QWidget()
+        container.setLayout(layout)
+        self.setWidget(container)
+
+        self.llm_session = llm_session
+
+        self.show()
+    
+    def sendMessage(self):
+        self.addMessage(self.message_input.text(), 1)
+        
+        answer = self.llm_session.chat(self.message_input.text())
+        self.addMessage(answer, 0)
+
+    def addMessage(self, text, i):
+        wrapLabel = WrapLabel(text)
+        if i % 2:
+            wrapLabel.setStyleSheet('''
+                WrapLabel {
+                    border: 1px outset palette(dark);
+                    border-radius: 8px;
+                    background: palette(light);
+                    margin-left: 50px;
+                    background:rgb(75, 255, 99);
+                }
+            ''')        
+        else:
+            wrapLabel.setStyleSheet('''
+                WrapLabel {
+                    border: 1px outset palette(dark);
+                    border-radius: 8px;
+                    background: palette(light);
+                    margin-right: 50px;
+                    background: #C8E6F5;
+                    color: #6D3939;
+                }
+            ''')        
+        
+        self.chat_display.layout().addWidget(wrapLabel)
+        QTimer.singleShot(0, self.scrollToBottom)
+
+    def scrollToBottom(self):
+        QApplication.processEvents()
+        self.verticalScrollBar().setValue(
+            self.verticalScrollBar().maximum())
+
+
 class MainWindow(QMainWindow):
     def __init__(self, *args, **kwargs):
         super(MainWindow, self).__init__(*args, **kwargs)
@@ -276,6 +386,11 @@ class MainWindow(QMainWindow):
         parahrase_action.setStatusTip("Paraphrase selected")
         parahrase_action.triggered.connect(self.paraphrase)
         ai_tools_menu.addAction(parahrase_action)
+
+        aichat_action = QAction("Chat", self)
+        aichat_action.setStatusTip("Chat with AI")
+        aichat_action.triggered.connect(self.start_chat)
+        ai_tools_menu.addAction(aichat_action)
 
         # wrap action
         wrap_action = QAction("Wrap text to window", self)
@@ -718,6 +833,10 @@ class MainWindow(QMainWindow):
 
     def md_render_close(self):
         self.editor.textChanged.disconnect(self.update_md_render)
+    
+    def start_chat(self):
+        self.chat_window = Chat(self.llm_session)
+        self.chat_window.show()
 
 
 
