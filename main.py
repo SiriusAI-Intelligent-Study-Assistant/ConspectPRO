@@ -49,6 +49,19 @@ class Thread_Paraphrase(QThread):
         self.quit()
 
 
+class Thread_Chat(QThread):
+    signal = pyqtSignal(list)
+    def __init__(self, text: str, llm_session: CreateLLMSession):
+        self.text = text
+        self.llm_session = llm_session
+        super(Thread_Chat, self).__init__()
+
+    def run(self):
+        answer = self.llm_session.chat(self.text)
+        self.signal.emit([self.text, answer])
+        self.quit()
+
+
 class Thread_Transtator(QThread):
     signal = pyqtSignal(list)
     def __init__(self, selected_text: str):
@@ -248,9 +261,12 @@ class Chat(QScrollArea):
     
     def sendMessage(self):
         self.addMessage(self.message_input.text(), 1)
+        self.temp_thread = Thread_Chat(self.message_input.text(), self.llm_session)
+        self.temp_thread.signal.connect(self.proceed_answer)
+        self.temp_thread.start()
         
-        answer = self.llm_session.chat(self.message_input.text())
-        self.addMessage(answer, 0)
+    def proceed_answer(self, signal):
+        self.addMessage(signal[1], 0)
 
     def addMessage(self, text, i):
         wrapLabel = WrapLabel(text)
