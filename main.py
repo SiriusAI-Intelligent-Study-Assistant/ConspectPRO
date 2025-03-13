@@ -271,6 +271,7 @@ class Chat(QScrollArea):
         self.temp_thread = Thread_Chat(self.message_input.text(), self.llm_session, self.note)
         self.temp_thread.signal.connect(self.proceed_answer)
         self.temp_thread.start()
+        self.message_input.setText("")
         
     def proceed_answer(self, signal):
         self.addMessage(signal[1], 0)
