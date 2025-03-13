@@ -51,13 +51,17 @@ class Thread_Paraphrase(QThread):
 
 class Thread_Chat(QThread):
     signal = pyqtSignal(list)
-    def __init__(self, text: str, llm_session: CreateLLMSession):
+    def __init__(self, text: str, llm_session: CreateLLMSession, note: str):
         self.text = text
         self.llm_session = llm_session
+        self.note = note
         super(Thread_Chat, self).__init__()
 
     def run(self):
-        answer = self.llm_session.chat(self.text)
+        if self.note:
+            answer = self.llm_session.chat('Ты отвечаешь на вопросы по теме, представленной в этом тектсе. Представь, что ты специалист, разбирающийся в этой теме:' + self.note + 'Теперь ответь на ворпос, учитывая всё вышеперечисленное:' + self.text)
+        else:
+            answer = self.llm_session.chat(self.text)
         self.signal.emit([self.text, answer])
         self.quit()
 
@@ -224,7 +228,7 @@ class WrapLabel(QTextEdit):
 
 
 class Chat(QScrollArea):
-    def __init__(self, llm_session):
+    def __init__(self, llm_session, note=''):
         super().__init__()
 
         layout = QVBoxLayout()
@@ -234,10 +238,11 @@ class Chat(QScrollArea):
         self.setMinimumSize(250, 250)
         self.setWidgetResizable(True)
         self.resize(480, 360)
-
+        self.setStyleSheet("background-color: #262627; color: #FFFFFF")
         send_message_panel_layout = QHBoxLayout()
 
         self.message_input = QLineEdit()
+        self.message_input.returnPressed.connect(self.sendMessage)  # Send message when enter is pressed
         send_message_panel_layout.addWidget(self.message_input)
 
         send_button = QPushButton('Отправить')
@@ -257,11 +262,13 @@ class Chat(QScrollArea):
 
         self.llm_session = llm_session
 
+        self.note = note
+
         self.show()
     
     def sendMessage(self):
         self.addMessage(self.message_input.text(), 1)
-        self.temp_thread = Thread_Chat(self.message_input.text(), self.llm_session)
+        self.temp_thread = Thread_Chat(self.message_input.text(), self.llm_session, self.note)
         self.temp_thread.signal.connect(self.proceed_answer)
         self.temp_thread.start()
         
@@ -277,7 +284,7 @@ class Chat(QScrollArea):
                     border-radius: 8px;
                     background: palette(light);
                     margin-left: 50px;
-                    background:rgb(75, 255, 99);
+                    background: #808080;
                 }
             ''')        
         else:
@@ -407,6 +414,11 @@ class MainWindow(QMainWindow):
         aichat_action.setStatusTip("Chat with AI")
         aichat_action.triggered.connect(self.start_chat)
         ai_tools_menu.addAction(aichat_action)
+
+        note_chat_action = QAction("Chat with this note", self)
+        note_chat_action.setStatusTip("Chat with this note with AI")
+        note_chat_action.triggered.connect(self.start_note_chat)
+        ai_tools_menu.addAction(note_chat_action)
 
         # wrap action
         wrap_action = QAction("Wrap text to window", self)
@@ -852,6 +864,10 @@ class MainWindow(QMainWindow):
     
     def start_chat(self):
         self.chat_window = Chat(self.llm_session)
+        self.chat_window.show()
+    
+    def start_note_chat(self):
+        self.chat_window = Chat(self.llm_session, note=self.editor.toPlainText())
         self.chat_window.show()
 
 
